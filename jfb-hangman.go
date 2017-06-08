@@ -125,6 +125,7 @@ func main() {
         }
         if len(message) > 0 {
             fmt.Println("*" + message)
+            message = ""
         }
         if len(guessed) > 0 {
             fmt.Println("Previous guesses: " + guessed)
@@ -137,7 +138,7 @@ func main() {
             bio = bufio.NewReader(os.Stdin)
             continue
         }
-        guess = string(guess_in)
+        guess = strings.ToLower(string(guess_in))
         if strings.Index(guessed, guess) >= 0 {
             message = "You already guessed '" + guess + "'."
             bio = bufio.NewReader(os.Stdin)
@@ -148,13 +149,13 @@ func main() {
             fmt.Println(guess, hasMoreInLine, err, strings.Index(word, guess))
             panic(err)
         }
-        if strings.Index(word, guess) == -1 {
+        if strings.Index(strings.ToLower(word), guess) == -1 {
             on_gallows++
         } else {
             word_show_bytes := []byte(word_show)
             for i := 0; i < len(word); i++ {
-                if word[i] == guess[0] {
-                    word_show_bytes[i] = guess[0]
+                if strings.ToLower(word)[i] == guess[0] {
+                    word_show_bytes[i] = word[i]
                 }
             }
             word_show = string(word_show_bytes)

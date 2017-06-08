@@ -137,7 +137,7 @@ func main() {
 
         // print and clear any error/status message
         if len(message) > 0 {
-            fmt.Println("*" + message)
+            fmt.Println("** " + message)
             message = ""
         }
 
@@ -154,11 +154,11 @@ func main() {
             fmt.Println(guess, hasMoreInLine, err, strings.Index(word, guess))
             panic(err)
         }
-        if len(guess_in) != 1 {
+        guess = strings.ToLower(string(guess_in))
+        if len(guess_in) != 1 || guess[0] < 'a' || guess[0] > 'z' {
             message = "Please guess exactly one letter."
             continue
         }
-        guess = strings.ToLower(string(guess_in))
 
         if strings.Index(guessed, guess) >= 0 {
             message = "You already guessed '" + guess + "'."

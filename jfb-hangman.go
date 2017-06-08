@@ -135,13 +135,11 @@ func main() {
         guess_in, hasMoreInLine, err := bio.ReadLine()
         if len(guess_in) != 1 {
             message = "Please guess exactly one letter."
-            bio = bufio.NewReader(os.Stdin)
             continue
         }
         guess = strings.ToLower(string(guess_in))
         if strings.Index(guessed, guess) >= 0 {
             message = "You already guessed '" + guess + "'."
-            bio = bufio.NewReader(os.Stdin)
             continue
         }
         guessed += string(guess)

@@ -82,6 +82,9 @@ func main() {
 
     message = ""
 
+    // get some screen-drawing characters the kludgy way
+    // instead of using some terminal library
+
     cmd := exec.Command("tput", "home")
     home, err := cmd.Output()
     if err != nil {
@@ -103,6 +106,7 @@ func main() {
     }
     screen_clear := string(clear)
 
+    // pick a word and generate same-length string of blanks (underscores)
     word = get_word()
     for i := 0; i < len(word); i++ {
         word_show += "_"
@@ -112,44 +116,65 @@ func main() {
     for {
         fmt.Print(screen_clear)
         gallows(on_gallows)
+
+        // exit the loop after drawing the gallows if the player has lost
         if on_gallows > 6 {
             break
         }
+
+        // print the blanks plus correctly-guessed letters
         fmt.Print(cursor_home + "Word:" + cursor_down + word_show)
+
+        // move the cursor below the gallows
         for i := 0; i < 10; i++ {
             fmt.Print(cursor_down)
         }
 
+        // exit the loop after printing the word if the player has won
         if word_show == word {
             break
         }
+
+        // print and clear any error/status message
         if len(message) > 0 {
             fmt.Println("*" + message)
             message = ""
         }
+
+        // print previously-guessed letters for player's reference
         if len(guessed) > 0 {
             fmt.Println("Previous guesses: " + guessed)
         }
+
+        // prompt and read the guess, converting to lower-case
         fmt.Print("Guess a letter: ")
         bio := bufio.NewReader(os.Stdin)
         guess_in, hasMoreInLine, err := bio.ReadLine()
+        if err != nil {
+            fmt.Println(guess, hasMoreInLine, err, strings.Index(word, guess))
+            panic(err)
+        }
         if len(guess_in) != 1 {
             message = "Please guess exactly one letter."
             continue
         }
         guess = strings.ToLower(string(guess_in))
+
         if strings.Index(guessed, guess) >= 0 {
             message = "You already guessed '" + guess + "'."
             continue
         }
+
+        // add guessed letter to list of guesses
         guessed += string(guess)
-        if err != nil {
-            fmt.Println(guess, hasMoreInLine, err, strings.Index(word, guess))
-            panic(err)
-        }
+
         if strings.Index(strings.ToLower(word), guess) == -1 {
+            // guessed letter not found in secret word;
+            // increase counter of bad guesses
             on_gallows++
         } else {
+            // guessed letter was found in the secret word;
+            // substitute it into the string of blanks/revealed letters
             word_show_bytes := []byte(word_show)
             for i := 0; i < len(word); i++ {
                 if strings.ToLower(word)[i] == guess[0] {
@@ -159,10 +184,10 @@ func main() {
             word_show = string(word_show_bytes)
         }
     }
-    fmt.Print("\n")
+    fmt.Print("\nYou")
     if word_show == word {
-        fmt.Println("You win!")
+        fmt.Println(" win!")
     } else {
-        fmt.Println("You're zestfully dead! The word was \"" + word + "\".")
+        fmt.Println("'re zestfully dead! The word was \"" + word + "\".")
     }
 }

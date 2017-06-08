@@ -1,7 +1,9 @@
 # hangman-game-node
 This is folder for the implementation from Jacob, Brian, J.D., and Ron's group.
 
-Implementation of the classic hangman game using NodeJS, and React.
+See the demo here: [hangman-react](https://hangman-react.herokuapp.com/)
+
+A classic hangman game using NodeJS, and React.
 The methods for getting user input and drawing the hangman are provided.
 Logic for the game progression is not implemented yet.
 

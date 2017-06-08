@@ -1,0 +1,20 @@
+.header {
+  text-align: center;
+}
+
+.intro {
+  text-align: center;
+}
+
+.main {
+  display: flex;
+  flex-flow: row;
+  justify-content: space-around;
+}
+
+.game-controls {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-around;
+  align-items: center;
+}

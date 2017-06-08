@@ -2,7 +2,7 @@
   text-align: center;
 }
 
-.intro {
+.info {
   text-align: center;
 }
 
@@ -17,4 +17,8 @@
   flex-flow: column;
   justify-content: space-around;
   align-items: center;
+}
+
+path, circle {
+  transition: all 0.5s ease;
 }

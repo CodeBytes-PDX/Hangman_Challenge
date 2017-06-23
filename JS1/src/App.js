@@ -34,21 +34,20 @@ class App extends Component {
     //sets the initial game state
     //TODO right now the game is setup twice because of how the svg style
     //property is set, this could be fixed to only need to init once
-    this.state = this.initGame()
+    this.state = this.initialState()
 
     //bind the event listeners the the App class
-    this.newGame = this.newGame.bind(this)
-    this.userGuess = this.userGuess.bind(this)
+    this.resetGame = this.resetGame.bind(this)
+    this.handleInput = this.handleInput.bind(this)
   }
 
   //needed to style the svg element initially
   componentDidMount() {
-    this.newGame()
+    this.resetGame()
   }
 
-  //sets up the initial state
-  initGame() {
-    let newWord = randomWord().toUpperCase().split('')
+  initialState() {
+    const newWord = randomWord().toUpperCase().split('')
 
     return {
       alphabet: [
@@ -73,113 +72,124 @@ class App extends Component {
     }
   }
 
-  //resets the game
-  newGame() {
-    this.setState(this.initGame())
+  resetGame() {
+    this.setState(this.initialState())
   }
 
-  //handles user input in the input box
-  userGuess(event) {
-    let letter = event.target.value.toUpperCase()
+  handleInput(event) {
+    const inputLetter = event.target.value.toUpperCase()
+
+    // remove guess from input box so we never have more than one letter
+    // (after recording the input value above!)
     event.target.value = ""
 
-    if (this.state.guessesLeft <= 0) {
-      this.setState({info: "No more guesses, you lose..."})
-    } else if (this.state.isSolved) {
-      this.setState({info: "You already won! Click new game button."})
-    } else {
-      if (letter.match(/[A-Z]/)) {
-        if (this.state.alphabet.includes(letter)) {
-          let guessesLeft = this.state.word.includes(letter) ? this.state.guessesLeft:this.state.guessesLeft-1
-          this.setState({
-            alphabet: this.state.alphabet.filter((alpha) => alpha !== letter),
-            guesses: this.state.guesses.map(
-              (guess, i) => guess !== '_' ? guess : (this.state.word[i] === letter ? letter : '_')),
-            guessesLeft: guessesLeft,
-            info: `You guessed ${letter}.`,
-            hangmanStyle: this.renderHangman(guessesLeft)
+    // local variables to simplify code below
+    const hasGuessesLeft = this.state.guessesLeft > 0
+    const isSolved = this.state.isSolved
+
+    if ( isSolved && hasGuessesLeft ) {
+      this.setState( {info: "You already won! Click the [New Game] button to play again."} )
+    } 
+    else if ( hasGuessesLeft ) {
+      // local variables to simplify code below
+      const alphabet = this.state.alphabet
+      const inAlphabet = alphabet.includes(inputLetter)
+      const isLetter = inputLetter.match(/[A-Z]/)
+
+      if ( isLetter && inAlphabet ) {
+        // local variables to simplify code below
+        const guesses = this.state.guesses
+        const guessesLeft = this.state.guessesLeft
+        const word = this.state.word
+
+        // calculate updates
+        const alphabetNow = alphabet.filter( char => char !== inputLetter )
+        const guessesNow = guesses.map( (guess, i) => {
+            const letterIfMatch = inputLetter === word[i] ? inputLetter : '_'
+            return guess === '_' ? letterIfMatch : guess
           })
-        } else {
-          this.setState({info: "You already guessed that!"})
-        }
-      } else {
-        this.setState({info: "Not a letter. Enter somthing between a and z."})
+        const guessesLeftNow = 
+            word.includes(inputLetter) ? guessesLeft : guessesLeft - 1
+
+        this.setState({
+          alphabet: alphabetNow,
+          guesses: guessesNow,
+          guessesLeft: guessesLeftNow,
+          info: `You guessed ${inputLetter}.`,
+          hangmanStyle: this.newHangman(guessesLeftNow)
+          })
+      } 
+      else if ( isLetter ) {
+        this.setState({info: "You already guessed that!"})
+      }
+      else {
+        this.setState({info: "Not a letter. Please choose a letter."})
       }
     }
-
-    // if (!this.alphabet.includes(letter.toUpperCase())) {
-    //   if (letter !== "") {
-    //     // Do nothing (no penalty).
-    //     console.log("You already guessed that!")
-    //     event.target.value = ""
-    //     return
-    //   }
-    // } else if (this.guessesLeft >= 1) {
-    //   this.setState({guessesLeft: this.guessesLeft--})
-    //   if (this.word.includes(letter)) {
-    //     for (let i = 0; i < this.word.length; i++)
-    //       if (this.hint[i] === "_" && this.word[i] === letter)
-    //         this.hint[i] = letter.toUpperCase()
-    //   this.setState({hintDisplay: this.hint.join(" ")})
-    //   } else {}
-    //   // addToHangman()
-    //   this.alphabet.splice(this.alphabet.indexOf(letter.toUpperCase()), 1)
-    //   this.setState({alphabet: this.alphabet})
-    // }
-    // if (JSON.stringify(this.hint) == JSON.stringify(this.word.map(letter => letter.toUpperCase())))
-    //   console.log("You got it! Good job.")
   }
 
-  //update the hangman svg sytle
   //returns a new hangman style using react svg style props
-  renderHangman(guessesLeft) {
-    let headStyleShow = {
+  newHangman(guessesLeft) {
+    // assign local variables to simplify the code below
+    let headStyle = {
       ...this.headStyle,
       "fillOpacity": "1",
       "strokeOpacity": "1"
     }
-    let pathStyleShow = {
+    let pathStyle = {
       ...this.pathStyle,
       "strokeOpacity": "1"
     }
-
     let hangmanStyle = this.state.hangmanStyle
 
     for (let partsToShow = 8 - guessesLeft; partsToShow > 0; partsToShow--) {
       switch (partsToShow) {
         case 1:
-          hangmanStyle.post = pathStyleShow
+          hangmanStyle.post = pathStyle
           break
         case 2:
-          hangmanStyle.head = headStyleShow
+          hangmanStyle.head = headStyle
           break
         case 3:
-          hangmanStyle.body = pathStyleShow
+          hangmanStyle.body = pathStyle
           break
         case 4:
-          hangmanStyle.leftArm = pathStyleShow
+          hangmanStyle.leftArm = pathStyle
           break
         case 5:
-          hangmanStyle.rightArm = pathStyleShow
+          hangmanStyle.rightArm = pathStyle
           break
         case 6:
-          hangmanStyle.leftLeg = pathStyleShow
+          hangmanStyle.leftLeg = pathStyle
           break
         case 7:
-          hangmanStyle.rightLeg = pathStyleShow
+          hangmanStyle.rightLeg = pathStyle
           break
         case 8:
-          hangmanStyle.noose = pathStyleShow
+          hangmanStyle.noose = pathStyle
           break
-        default:
+        default: // this is included to avoid a console warning
       }
     }
     return hangmanStyle
   }
 
   componentDidUpdate() {
-    if (!this.state.isSolved && this.state.word.every((word, i) => word === this.state.guesses[i])) {
-      this.setState({isSolved: true, info: "You got it! Good job."})
+    // assign local variables to make the code below easier to read
+    const guesses = this.state.guesses
+    const guessesLeft = this.state.guessesLeft
+    const notSolved = !this.state.isSolved
+    const word = this.state.word
+    const guessMatchesWord = word.every((letter, i) => letter === guesses[i])
+
+    if (notSolved && guessMatchesWord) {
+      this.setState({isSolved: true, info: "You got it. Good job!"})
+    }
+    else if (guessesLeft === 0) {
+      this.setState({
+        info: `No more guesses. Too bad. (The word was ${word.join('')}.)`,
+        guessesLeft: -1
+        })
     }
   }
 
@@ -206,24 +216,24 @@ class App extends Component {
             </g>
           </svg>
           <div className="game-controls">
-            <button onClick={this.newGame}>New Game</button>
+            <button onClick={this.resetGame}>New Game</button>
             <div style={{
               textAlign: "center"
             }}>
               <h4>Remaining Letters:</h4>
               <div className="remaining-alphabet">
-                {this.state.alphabet.map((alpha) => " " + alpha + " ")}
+                {this.state.alphabet.map((letter) => " " + letter + " ")}
               </div>
             </div>
             <input type="text" style={{
               width: "100px"
-            }} onChange={this.userGuess} placeholder="Guess a letter..."/>
+            }} onChange={this.handleInput} placeholder="Guess a letter"/>
             <div style={{
               textAlign: "center"
             }}>
               <h4>Guesses:</h4>
               <div className="puzzle-word">
-                {this.state.guesses.map((guess) => " " + guess + " ")}
+                {this.state.guesses.map((letter) => " " + letter + " ")}
               </div>
             </div>
           </div>
